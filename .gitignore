@@ -1,0 +1,7 @@
+# Claude Code personal settings (keep team settings, ignore personal overrides)
+.claude/settings.local.json
+.claude/plans/
+
+# OS
+.DS_Store
+Thumbs.db
