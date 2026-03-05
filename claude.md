@@ -92,6 +92,127 @@ class ResourceController {
 
 ---
 
+## 🤖 Subagent System (Smart Token Usage)
+
+**Subagents** = Specialized AI agents for complex, multi-step tasks
+
+### When to Use Subagents
+
+**✅ USE subagents for:**
+- Multi-file exploration (5+ files)
+- Feature planning before implementation
+- Cross-feature analysis and workflows
+- Pattern verification across codebase
+- Complex bug investigations
+
+**❌ DON'T use subagents for:**
+- Reading 1-2 specific files (use Read tool)
+- Editing known files (use Edit tool)
+- Simple grep searches (use Grep tool)
+- Running tests or commands (use Bash tool)
+
+### Built-in Subagents
+
+Claude Code provides these built-in subagents:
+
+1. **`Explore`** - Fast codebase exploration
+   - Use for: Finding files, understanding structure, searching patterns
+   - Thoroughness: "quick" | "medium" | "very thorough"
+   - Example: *"Use Explore agent with medium thoroughness to find all authentication-related files"*
+
+2. **`Plan`** - Software architect for implementation planning
+   - Use for: Designing features, identifying critical files, architectural decisions
+   - Example: *"Use Plan agent to design a user notification system"*
+
+3. **`general-purpose`** - Multi-step task handler
+   - Use for: Complex research, analysis combining search + decisions
+   - Example: *"Use general-purpose agent to analyze how payments flow through the system"*
+
+### Creating Custom Slash Commands
+
+You can create custom slash commands that invoke subagents for your specific domain:
+
+**Example: `.claude/commands/explore-domain.md`**
+```markdown
+---
+description: Explore your domain-specific code
+---
+
+Use the Explore agent with "medium" thoroughness to search and analyze
+[YOUR DOMAIN] code in this project.
+
+Focus on:
+- [Entity 1] management
+- [Entity 2] workflows
+- [Feature 3] logic
+
+Provide a comprehensive overview with file paths and line numbers.
+```
+
+Then use it: `/explore-domain`
+
+### Token Savings with Subagents
+
+| Task Type | Manual | With Subagent | Savings |
+|-----------|--------|---------------|---------|
+| Multi-file exploration | ~8K | ~2K | **75%** |
+| Feature planning | ~12K | ~3K | **75%** |
+| Bug investigation | ~6K | ~2K | **67%** |
+| Workflow analysis | ~5K | ~2K | **60%** |
+
+**Average savings: 60-70% on complex tasks**
+
+### Best Practices
+
+**1. Use for planning before coding**
+```
+→ /plan-feature (or invoke Plan agent)
+→ Describe feature
+→ Get complete implementation plan
+→ Start coding with context
+```
+
+**2. Explore before modifying**
+```
+→ Use Explore agent to understand existing code
+→ Then make informed changes
+→ Saves time + prevents mistakes
+```
+
+**3. Combine with skills**
+```
+→ Use subagent for exploration/planning
+→ Load skills for specific knowledge
+→ Best of both worlds
+```
+
+**4. Specify thoroughness**
+```
+→ "quick" - Fast surface search
+→ "medium" - Balanced (recommended)
+→ "very thorough" - Deep analysis
+```
+
+### Decision Tree
+
+```
+Need to understand existing code (5+ files)?
+  → Use Explore agent
+
+Planning new feature?
+  → Use Plan agent
+
+Complex multi-step investigation?
+  → Use general-purpose agent
+
+Simple task (read/edit 1-2 files)?
+  → Use direct tools (Read, Edit, Grep)
+```
+
+📖 **Create custom commands:** `.claude/commands/` directory
+
+---
+
 ## 🏗️ Business Model (Quick)
 
 **Describe your business model here:**
@@ -294,13 +415,19 @@ Every feature must have:
 
 ## 🎯 Token Usage Strategy
 
-| Task Type | Load | Est. Tokens |
-|-----------|------|-------------|
-| Simple (add button, fix typo) | This file only | ~2K |
+| Task Type | Approach | Est. Tokens |
+|-----------|----------|-------------|
+| Simple (add button, fix typo) | Direct editing | ~2K |
 | Medium (add table, new page) | This + 1 skill | ~3-4K |
-| Complex (new feature) | This + 2-3 skills/docs | ~5-7K |
+| Complex exploration | Use Explore subagent | ~2-3K |
+| Feature planning | Use Plan subagent | ~3K |
+| Multi-file analysis | Use general-purpose subagent | ~2-3K |
+| Traditional complex task | This + 2-3 skills/docs | ~5-7K |
 
-**Savings: 25-30% vs single large file**
+**Total Savings: 50-70% vs traditional approach**
+- Modular docs: 25-30% savings
+- Token control hooks: 30-50% savings
+- Subagents: 60-70% on complex tasks
 
 ---
 
@@ -327,6 +454,73 @@ Every feature must have:
 
 **See:** `.claude/HOOKS_GUIDE.md` for complete documentation
 **Quick ref:** `.claude/HOOKS_QUICK_REF.md` (1-page cheatsheet)
+
+---
+
+## 🌳 Git Worktrees (Parallel Development)
+
+**Git Worktrees** = Work on multiple branches simultaneously without switching
+
+### Why Use Worktrees?
+
+- ✅ Work on multiple features in parallel
+- ✅ Keep main branch running while developing
+- ✅ Quick testing without stashing changes
+- ✅ Review PRs without losing current work
+- ✅ Separate Claude sessions per worktree
+
+### Quick Commands
+
+**Create worktree:**
+```bash
+cd /path/to/your-project
+git worktree add ../your-project-feature-name feature/feature-name
+```
+
+**List all worktrees:**
+```bash
+git worktree list
+```
+
+**Remove worktree:**
+```bash
+git worktree remove ../your-project-feature-name
+git branch -d feature/feature-name  # After merging
+```
+
+### Worktree Workflow
+
+```bash
+# 1. Create worktree for new feature
+git worktree add ../my-project-new-feature feature/new-feature
+
+# 2. Open new Claude session in that directory
+cd ../my-project-new-feature
+
+# 3. Work on feature (claude.md is shared!)
+claude  # Start Claude Code session
+
+# 4. After completing and merging
+cd /path/to/my-project
+git worktree remove ../my-project-new-feature
+git branch -d feature/new-feature
+```
+
+### Best Practices
+
+1. **Naming:** `project-name-feature-name` or `project-name-bugfix-name`
+2. **One Claude session per worktree** - Independent context per directory
+3. **Shared .claude/ folder** - Settings and hooks work across all worktrees
+4. **Separate dependencies** - Each worktree has own `vendor/` and `node_modules/`
+5. **Database isolation** - Use different DB names if testing migrations
+
+### Tips
+
+- **Claude context isolated** - Each worktree has separate conversation history
+- **Port conflicts** - Use different ports: `php artisan serve --port=8001`
+- **Composer/NPM isolated** - Install separately in each worktree
+
+📖 **Learn more:** `git worktree --help`
 
 ---
 
