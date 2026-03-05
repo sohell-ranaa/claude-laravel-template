@@ -520,7 +520,8 @@ git branch -d feature/new-feature
 - **Port conflicts** - Use different ports: `php artisan serve --port=8001`
 - **Composer/NPM isolated** - Install separately in each worktree
 
-📖 **Learn more:** `git worktree --help`
+📖 **Quick Reference:** `.claude/GIT_WORKTREES_QUICK_REF.md` (token-optimized!)
+📖 **Git Help:** `git worktree --help`
 
 ---
 
