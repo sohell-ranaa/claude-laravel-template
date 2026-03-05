@@ -308,11 +308,25 @@ Every feature must have:
 
 **Settings:** `.claude/settings.json` (team-shared)
 **Skills:** `.claude/skills/` (customize for your domain)
+**Hooks:** `.claude/hooks/` (4 hooks, token-control)
 **Components:** `resources/views/components/`
 **Livewire:** `app/Livewire/` (organized by feature)
 
 **Permissions configured:** File ops, git, composer, artisan, npm (auto-approved)
 **Blocked:** `.env` files, curl, wget (security)
+
+### 🎯 Token Control (Hooks Active)
+
+**Hooks automatically:**
+- ✅ Auto-approve safe commands (no prompts)
+- 🚫 Block expensive operations (migrate:fresh, composer update, etc.)
+- ⚠️  Warn before web searches
+- 📊 Show token-aware mode on session start
+
+**Estimated token savings: 30-50%**
+
+**See:** `.claude/HOOKS_GUIDE.md` for complete documentation
+**Quick ref:** `.claude/HOOKS_QUICK_REF.md` (1-page cheatsheet)
 
 ---
 

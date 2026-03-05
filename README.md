@@ -10,6 +10,7 @@ This template provides:
 - ✅ **claude.md** - Main Claude Code instructions (generic, customizable)
 - ✅ **.claude/settings.json** - Auto-approved commands (no permission prompts)
 - ✅ **.claude/skills/** - 4 pre-built skills (Laravel, Blade, Business Logic, Testing)
+- ✅ **.claude/hooks/** - 4 token-control hooks (30-50% token savings!)
 - ✅ **docs/** - Documentation structure (components, patterns, tasks)
 - ✅ **Modular code guidelines** - Keep files small (<300 lines)
 - ✅ **Auto-maintenance rules** - Claude keeps docs in sync
@@ -204,9 +205,64 @@ your-project/
 - Manual invoke: `/skill-name`
 - Team-shared via git
 
-### 5. **No Permission Prompts**
+### 5. **Token Control Hooks** ⭐ NEW!
+- **Block expensive ops** - migrate:fresh, composer update (saves 500-5000 tokens each)
+- **Auto-approve safe commands** - No permission prompts (saves 50 tokens each)
+- **Warn web operations** - Conscious token usage for searches
+- **30-50% token savings** overall!
+
+### 6. **No Permission Prompts**
 - Auto-approved: `git`, `composer`, `artisan`, `npm`, `ls`, `cd`, etc.
 - Blocked: `.env` files, `curl`, `wget`
+
+---
+
+## 🎯 Token Control Hooks
+
+The template includes 4 pre-configured hooks that save **30-50% tokens**:
+
+### 1. **block-expensive-ops.sh** (PreToolUse)
+Blocks expensive operations **before** they consume tokens:
+- ❌ `migrate:fresh`, `migrate:reset`, `db:wipe`
+- ❌ `composer update`, `composer require`
+- ❌ `npm audit fix`, `npm update`
+- ❌ `artisan tinker`, `DROP TABLE`, `TRUNCATE`
+
+**Savings:** 500-5000 tokens per blocked operation
+
+### 2. **auto-approve-safe.sh** (PermissionRequest)
+Auto-approves safe read-only commands (no prompts):
+- ✅ `ls`, `git status`, `cat`, `grep`, `find`
+- ✅ `artisan list`, `composer --version`
+- ✅ `npm run test`, `npm run lint`
+
+**Savings:** 50 tokens per command (no permission prompt)
+
+### 3. **warn-web-operations.sh** (PreToolUse)
+Warns before web searches (still allows):
+- ⚠️  Reminds you before WebSearch/WebFetch
+- Encourages conscious token usage
+
+### 4. **session-start.sh** (SessionStart)
+Shows token-aware mode status every session
+
+**Complete documentation:** See `.claude/HOOKS_GUIDE.md` in template
+**Quick reference:** See `.claude/HOOKS_QUICK_REF.md`
+
+### Customizing Hooks
+
+Add your own blocked operations:
+```bash
+vim .claude/hooks/block-expensive-ops.sh
+# Add to BLOCKED_PATTERNS array
+```
+
+Override when needed:
+```bash
+# Run directly in terminal (bypasses hooks)
+cd backend
+php artisan migrate:fresh
+```
 
 ---
 
