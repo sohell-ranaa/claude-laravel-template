@@ -11,13 +11,13 @@
 ```php
 <?php
 
-namespace App\Livewire\Partners;
+namespace App\Livewire\Resources;
 
-use App\Models\SenderClient;
+use App\Models\Resource;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-class SenderClients extends Component
+class ResourceList extends Component
 {
     use WithPagination;
 
@@ -43,7 +43,7 @@ class SenderClients extends Component
     public function render()
     {
         // Build query
-        $query = SenderClient::query();
+        $query = Resource::query();
 
         // Apply filters
         if ($this->search) {
@@ -63,15 +63,15 @@ class SenderClients extends Component
 
         // Calculate stats
         $stats = [
-            'total' => SenderClient::count(),
-            'active' => SenderClient::where('status', 'active')->count(),
-            'pending' => SenderClient::where('status', 'pending')->count(),
+            'total' => Resource::count(),
+            'active' => Resource::where('status', 'active')->count(),
+            'pending' => Resource::where('status', 'pending')->count(),
         ];
 
-        return view('livewire.partners.sender-clients', [
+        return view('livewire.resources', [
             'clients' => $clients,
             'stats' => $stats,
-        ])->layout('layouts.app', ['title' => 'Sender Clients']);
+        ])->layout('layouts.app', ['title' => 'Resources']);
     }
 }
 ```
@@ -85,23 +85,23 @@ class SenderClients extends Component
 
 namespace App\Livewire\Partners;
 
-use App\Models\SenderClient;
+use App\Models\Resource;
 use Livewire\Component;
 
-class SenderClientView extends Component
+class ResourceView extends Component
 {
-    public SenderClient $client;
+    public Resource $client;
 
     // Mount with slug
     public function mount($slug)
     {
-        $this->client = SenderClient::where('slug', $slug)->firstOrFail();
+        $this->client = Resource::where('slug', $slug)->firstOrFail();
     }
 
     // Edit action
     public function editClient()
     {
-        return redirect()->route('partners.sender-clients.edit', $this->client->slug);
+        return redirect()->route('resources.edit', $this->client->slug);
     }
 
     // Disable action
@@ -125,7 +125,7 @@ class SenderClientView extends Component
     {
         $this->client->update(['status' => 'archived']);
         session()->flash('success', "Client '{$this->client->name}' has been archived.");
-        return redirect()->route('partners.sender-clients.index');
+        return redirect()->route('resources.index');
     }
 
     public function render()
@@ -138,7 +138,7 @@ class SenderClientView extends Component
 
 ---
 
-## =Ä Model Patterns
+## =ï¿½ Model Patterns
 
 ### Auto-Generated Fields
 
@@ -150,7 +150,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
-class SenderClient extends Model
+class Resource extends Model
 {
     protected $fillable = [
         'code',
@@ -202,7 +202,7 @@ class SenderClient extends Model
 
 ---
 
-## =ã Routing Patterns
+## =ï¿½ Routing Patterns
 
 ### Web Routes (Livewire)
 
@@ -214,12 +214,12 @@ use Illuminate\Support\Facades\Route;
 // Partners Management
 Route::prefix('partners')->name('partners.')->group(function () {
 
-    // Sender Clients (IN Partners)
+    // Resources (IN Partners)
     Route::prefix('sender-clients')->name('sender-clients.')->group(function () {
-        Route::get('/', App\Livewire\Partners\SenderClients::class)->name('index');
-        Route::get('/create', App\Livewire\Partners\SenderClientCreate::class)->name('create');
-        Route::get('/{slug}', App\Livewire\Partners\SenderClientView::class)->name('view');
-        Route::get('/{slug}/edit', App\Livewire\Partners\SenderClientEdit::class)->name('edit');
+        Route::get('/', App\Livewire\Partners\Resources::class)->name('index');
+        Route::get('/create', App\Livewire\Partners\ResourceCreate::class)->name('create');
+        Route::get('/{slug}', App\Livewire\Partners\ResourceView::class)->name('view');
+        Route::get('/{slug}/edit', App\Livewire\Partners\ResourceEdit::class)->name('edit');
     });
 
     // Delivery Partners (OUT Partners)
@@ -235,12 +235,12 @@ Route::prefix('partners')->name('partners.')->group(function () {
 **Key Points:**
 - Use slug in URL: `/{slug}` not `/{id}`
 - Class-based routing for Livewire
-- Consistent naming: prefix ’ name
+- Consistent naming: prefix ï¿½ name
 - RESTful structure
 
 ---
 
-## =Ã Database Patterns
+## =ï¿½ Database Patterns
 
 ### Migration with Enums
 
@@ -255,7 +255,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('sender_clients', function (Blueprint $table) {
+        Schema::create('resources', function (Blueprint $table) {
             $table->id();
 
             // Auto-generated fields
@@ -309,14 +309,14 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('sender_clients');
+        Schema::dropIfExists('resources');
     }
 };
 ```
 
 ---
 
-## =Ý View Patterns
+## =ï¿½ View Patterns
 
 ### Standard List View
 
@@ -324,10 +324,10 @@ return new class extends Migration
 <div>
     {{-- Page Header --}}
     <x-page-header
-        title="Sender Clients"
+        title="Resources"
         subtitle="Manage parcel IN partners"
         icon-color="blue">
-        <x-button variant="primary" href="{{ route('partners.sender-clients.create') }}">
+        <x-button variant="primary" href="{{ route('resources.create') }}">
             <x-icon name="plus" size="sm" class="mr-2" />
             Add Client
         </x-button>
@@ -374,7 +374,7 @@ return new class extends Migration
                             <x-status-badge :status="$client->status" />
                         </td>
                         <td class="px-6 py-4">
-                            <a href="{{ route('partners.sender-clients.view', $client->slug) }}">
+                            <a href="{{ route('resources.view', $client->slug) }}">
                                 View
                             </a>
                         </td>
@@ -387,7 +387,7 @@ return new class extends Migration
             <x-empty-state
                 title="No Clients Yet"
                 description="Get started by adding your first client.">
-                <x-button variant="primary" href="{{ route('partners.sender-clients.create') }}">
+                <x-button variant="primary" href="{{ route('resources.create') }}">
                     Add Client
                 </x-button>
             </x-empty-state>
@@ -405,7 +405,7 @@ return new class extends Migration
     {{-- Page Header with Actions --}}
     <x-page-header :title="$client->name" subtitle="Client Details">
         <div class="flex space-x-3">
-            <x-button variant="secondary" href="{{ route('partners.sender-clients.index') }}">
+            <x-button variant="secondary" href="{{ route('resources.index') }}">
                 Back
             </x-button>
             <x-button variant="primary" wire:click="editClient">
@@ -463,7 +463,7 @@ return new class extends Migration
 ## = Form Validation Pattern
 
 ```php
-class SenderClientCreate extends Component
+class ResourceCreate extends Component
 {
     public $name = '';
     public $email = '';
@@ -471,12 +471,12 @@ class SenderClientCreate extends Component
 
     protected $rules = [
         'name' => 'required|string|max:255',
-        'email' => 'required|email|unique:sender_clients,email',
+        'email' => 'required|email|unique:resources,email',
         'phone' => 'required|string|max:20',
     ];
 
     protected $messages = [
-        'name.required' => 'Client name is required',
+        'name.required' => 'Resource name is required',
         'email.email' => 'Please enter a valid email',
         'email.unique' => 'This email is already registered',
     ];
@@ -492,18 +492,18 @@ class SenderClientCreate extends Component
     {
         $validated = $this->validate();
 
-        $client = SenderClient::create($validated);
+        $client = Resource::create($validated);
 
         session()->flash('success', "Client '{$client->name}' created successfully.");
 
-        return redirect()->route('partners.sender-clients.view', $client->slug);
+        return redirect()->route('resources.view', $client->slug);
     }
 }
 ```
 
 ---
 
-## =¡ Best Practices
+## =ï¿½ Best Practices
 
 ### DO:
 -  Use Livewire for all interactivity

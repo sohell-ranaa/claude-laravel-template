@@ -9,12 +9,12 @@
 ### Step 1: Create Livewire Component
 
 ```bash
-php artisan make:livewire Partners/NewFeature
+php artisan make:livewire Resources/NewFeature
 ```
 
 **Creates:**
-- `app/Livewire/Partners/NewFeature.php`
-- `resources/views/livewire/partners/new-feature.blade.php`
+- `app/Livewire/Resources/NewFeature.php`
+- `resources/views/livewire/resources/new-feature.blade.php`
 
 ---
 
@@ -23,15 +23,15 @@ php artisan make:livewire Partners/NewFeature
 Edit `routes/web.php`:
 
 ```php
-Route::get('/partners/new-feature', App\Livewire\Partners\NewFeature::class)
-    ->name('partners.new-feature');
+Route::get('/resources/new-feature', App\Livewire\Partners\NewFeature::class)
+    ->name('resources.new-feature');
 ```
 
 ---
 
 ### Step 3: Implement Component
 
-`app/Livewire/Partners/NewFeature.php`:
+`app/Livewire/Resources/NewFeature.php`:
 
 ```php
 <?php
@@ -44,7 +44,7 @@ class NewFeature extends Component
 {
     public function render()
     {
-        return view('livewire.partners.new-feature')
+        return view('livewire.resources.new-feature')
             ->layout('layouts.app', ['title' => 'New Feature']);
     }
 }
@@ -54,7 +54,7 @@ class NewFeature extends Component
 
 ### Step 4: Build View
 
-`resources/views/livewire/partners/new-feature.blade.php`:
+`resources/views/livewire/resources/new-feature.blade.php`:
 
 ```blade
 <div>
@@ -94,7 +94,7 @@ class SenderClientView extends Component
     // Edit
     public function editClient()
     {
-        return redirect()->route('partners.sender-clients.edit', $this->client->slug);
+        return redirect()->route('resources.sender-clients.edit', $this->client->slug);
     }
 
     // Disable
@@ -118,7 +118,7 @@ class SenderClientView extends Component
     {
         $this->client->update(['status' => 'archived']);
         session()->flash('success', "Client archived.");
-        return redirect()->route('partners.sender-clients.index');
+        return redirect()->route('resources.sender-clients.index');
     }
 }
 ```

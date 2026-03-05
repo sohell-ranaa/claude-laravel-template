@@ -1,270 +1,190 @@
 ---
 name: business-logic
-description: Two-sided marketplace business rules and partner logic. Use when working with partners, payments, invoicing, or financial operations.
+description: Your domain-specific business rules and logic. Customize this for your project's business domain.
 ---
 
 # Business Logic & Rules
 
-**Business Model:** Two-Sided Parcel Sorting Marketplace
-**Critical:** Always check `partner_relationship_type` before financial operations
+**[YOUR PROJECT NAME] - Define your domain here**
 
-## ⚠️ CRITICAL RULE: Internal Partners
+## 📝 Instructions
 
-**Internal partners = NO invoices, NO payments**
+This skill should contain your project-specific business rules, domain logic, and critical constraints.
 
-### Internal Partner Logic
-```php
-// ALWAYS check before generating invoice/payment
-if ($partner->partner_relationship_type === 'internal') {
-    // DO: Record transaction for reporting
-    // DON'T: Generate invoice
-    // DON'T: Create payment record
-    // DON'T: Charge commission
-
-    $this->recordInternalTransaction($partner, $amount);
-    return; // Skip invoicing logic
-}
-
-// For external partners only
-$this->generateInvoice($partner, $amount);
-$this->processPayment($partner);
-```
-
-### Display Internal Partner Alert
-```blade
-@if($partner->partner_relationship_type === 'internal')
-    <x-alert variant="info">
-        <strong>Internal Partner:</strong> Transactions tracked for reporting only.
-        No invoices or payments are generated.
-    </x-alert>
-@endif
-```
+**Before using this template:**
+1. Replace "[YOUR PROJECT]" with your project name
+2. Define your core entities and their rules
+3. Document critical business constraints
+4. Add code examples for key validations
 
 ---
 
-## Two-Sided Marketplace
+## Example: E-Commerce Platform
 
-### Parcel IN Partners (SenderClient)
-- E-commerce platforms
-- Kiosk networks
-- Retailers
-- Marketplaces
-- **Send parcels TO sorting centers**
+### Critical Business Rules
+
+1. **Payment Before Shipment**
+   ```php
+   // Always verify payment before shipping
+   if (!$order->payment_confirmed) {
+       throw new PaymentNotConfirmedException();
+   }
+
+   // Exception for COD orders
+   if ($order->payment_method === 'cod') {
+       // Ship without payment confirmation
+       $this->shipOrder($order);
+   }
+   ```
+
+2. **Inventory Management**
+   ```php
+   // Check stock before confirming order
+   if ($product->stock < $orderQuantity) {
+       throw new InsufficientStockException();
+   }
+
+   // Decrement stock on confirmation
+   $product->decrement('stock', $orderQuantity);
+   ```
+
+3. **Refund Policy**
+   ```php
+   // Check refund eligibility
+   if ($order->created_at->diffInDays(now()) > 30) {
+       throw new RefundPeriodExpiredException();
+   }
+   ```
+
+### Entity Relationships
+
+**Product:**
+- belongs to Category
+- has many OrderItems
+- has many Reviews
+
+**Order:**
+- belongs to User
+- has many OrderItems
+- has one Payment
+
+**User:**
+- has many Orders
+- has one Cart
+- has many Addresses
+
+---
+
+## Your Project - Replace This Section
+
+### Entity 1: [Name]
+
+**Purpose:** Describe what this entity represents
 
 **Key Fields:**
-- `partner_relationship_type`: `external`, `internal`, `subsidiary`
-- `business_type`: `ecommerce`, `kiosk`, `retail`, `marketplace`
-- `expected_volume_per_day`
-- `total_parcels_sent`
-- `billing_enabled`
-- `cod_settlement_enabled`
+- `field_1`: Description
+- `field_2`: Description
+- `field_3`: Description
 
-### Parcel OUT Partners (DeliveryPartner)
-- Courier services
-- Kiosk networks
-- Last-mile delivery providers
-- **Receive sorted parcels FROM sorting centers**
+**Business Rules:**
+1. Rule 1 - When X happens, do Y
+2. Rule 2 - Never allow Z
+3. Rule 3 - Always validate A before B
+
+**Code Example:**
+```php
+// Example validation or business logic
+if ($entity->some_field === 'specific_value') {
+    // Do something specific
+}
+```
+
+### Entity 2: [Name]
+
+**Purpose:** Describe what this entity represents
 
 **Key Fields:**
-- `partner_relationship_type`: `external`, `internal`, `subsidiary`
-- `partner_type`: `courier_service`, `kiosk_network`, `last_mile_provider`, `freight_forwarder`
-- `delivery_capacity_per_day`
-- `total_parcels_received`
-- `commission_rate`
-- `cod_collection_enabled`
+- `field_1`: Description
+- `field_2`: Description
 
----
+**Business Rules:**
+1. Rule 1
+2. Rule 2
 
-## Partner Relationship Types
+### Critical Constraints
 
-### 1. External Partners
-**Characteristics:**
-- ✅ Invoices are generated monthly
-- ✅ Actual money transfers occur
-- ✅ Payment terms apply (prepaid, postpaid, COD)
-- ✅ Commission/fees are charged
-- ✅ Tax calculations apply
+**List your project's critical constraints:**
 
-**Code Check:**
+1. **Constraint Name**
+   - What: Description
+   - Why: Business reason
+   - How: Implementation approach
+
+   ```php
+   // Code example
+   if ($condition) {
+       // Enforce constraint
+   }
+   ```
+
+2. **Another Constraint**
+   - What: Description
+   - Why: Business reason
+   - How: Implementation
+
+### Common Operations
+
+**Document common business operations:**
+
+#### Operation 1: [Name]
 ```php
-if ($partner->partner_relationship_type === 'external') {
-    // Generate invoice
-    // Process payment
-    // Charge commission
-}
-```
-
-### 2. Internal Partners ⚠️
-**Definition:** Own divisions/departments (e.g., DigiBox Kiosk Network)
-
-**Characteristics:**
-- ❌ **NO invoices generated**
-- ❌ **NO money transfers**
-- ❌ **NO commission charged**
-- ✅ Transactions tracked for reporting only
-- ✅ All entries are "book entries"
-- ✅ Used for internal analytics
-
-**Example:** DigiBox Kiosk Network (both sender and delivery)
-
-### 3. Subsidiary Partners
-**Characteristics:**
-- ✅ Invoices generated but with special terms
-- ✅ Preferential rates
-- ✅ Consolidated billing
-- ✅ Simplified payment flows
-
----
-
-## DigiBox Kiosk Network Scenario
-
-**Special Case:** Acts as BOTH sender AND delivery partner
-
-### Database Records
-```php
-// Two separate records
-SenderClient: {
-    code: 'DIGI-SND-001',
-    name: 'DigiBox Kiosk Network',
-    partner_relationship_type: 'internal', // ⚠️
-    business_type: 'kiosk'
-}
-
-DeliveryPartner: {
-    code: 'DIGI-DEL-001',
-    name: 'DigiBox Kiosk Network',
-    partner_relationship_type: 'internal', // ⚠️
-    partner_type: 'kiosk_network'
-}
-```
-
-**Both marked as `internal` → NO invoices, NO payments**
-
----
-
-## Payment Terms
-
-### 1. Prepaid
-- Client pays BEFORE service
-- Balance deducted from credit
-- No invoices generated
-
-### 2. Postpaid
-- Client pays AFTER service (monthly)
-- Invoices generated at month-end
-- Payment due based on terms (7 days, 15 days, etc.)
-
-### 3. COD (Cash on Delivery)
-- Delivery partner collects cash from end customer
-- Delivery partner remits to sorting center
-- Sorting center settles with sender client
-
-### 4. Credit
-- Client has credit limit
-- Balance tracked
-- Auto-invoice when credit used
-
----
-
-## Status Workflows
-
-### Partner Status Lifecycle
-```
-pending_approval → active → inactive
-                    ↓
-                suspended
-                    ↓
-                archived (soft delete)
-```
-
-**Status Meanings:**
-- `pending_approval`: Awaiting verification
-- `active`: Operational
-- `inactive`: Temporarily disabled (can reactivate)
-- `suspended`: Frozen due to issues (requires review)
-- `archived`: No longer in use (soft delete)
-
----
-
-## Business Rules Summary
-
-### DO:
-- ✅ Track ALL transactions (internal and external)
-- ✅ Generate invoices for external partners only
-- ✅ Check `partner_relationship_type` before invoicing
-- ✅ Use consistent status workflows
-- ✅ Calculate commission for external delivery partners
-- ✅ Validate API keys for external partners
-
-### DON'T:
-- ❌ Generate invoices for internal partners
-- ❌ Create payment records for internal partners
-- ❌ Charge commission to internal partners
-- ❌ Mix internal and external payment logic
-- ❌ Skip tracking internal transactions (still need reporting)
-
----
-
-## Code Examples
-
-### Creating External Partner
-```php
-$client = SenderClient::create([
-    'name' => 'Test E-commerce',
-    'email' => 'test@ecommerce.com',
-    'phone' => '01700000000',
-    'business_type' => 'ecommerce',
-    'partner_relationship_type' => 'external', // ✅ External
-    'expected_volume_per_day' => 100,
-    'billing_enabled' => true,
-]);
-```
-
-### Creating Internal Partner (DigiBox)
-```php
-$digiboxSender = SenderClient::create([
-    'name' => 'DigiBox Kiosk Network',
-    'email' => 'sender@digibox.com',
-    'phone' => '01700000002',
-    'business_type' => 'kiosk',
-    'partner_relationship_type' => 'internal', // ⚠️ Internal
-    'expected_volume_per_day' => 500,
-    'billing_enabled' => false, // NO billing for internal
-]);
-```
-
-### Invoice Generation Logic
-```php
-public function generateMonthlyInvoices()
+// Example code for this operation
+public function performOperation($entity)
 {
-    $partners = SenderClient::where('status', 'active')->get();
+    // Step 1: Validate
+    $this->validate($entity);
 
-    foreach ($partners as $partner) {
-        // CRITICAL: Check relationship type
-        if ($partner->partner_relationship_type === 'internal') {
-            // Skip invoice generation for internal partners
-            Log::info("Skipping invoice for internal partner: {$partner->name}");
-            continue;
-        }
+    // Step 2: Process
+    $result = $this->process($entity);
 
-        // Generate invoice for external partners only
-        $invoice = $this->createInvoice($partner);
-        $this->sendInvoiceEmail($partner, $invoice);
-    }
+    // Step 3: Return
+    return $result;
 }
 ```
 
-### Checking in Tinker
+#### Operation 2: [Name]
 ```php
-// In tinker
-$client = App\Models\SenderClient::find(1);
-
-// Check if internal
-if ($client->partner_relationship_type === 'internal') {
-    echo "⚠️ This is an internal partner - NO invoices!";
-}
+// Another common operation
 ```
 
 ---
 
-**Reference:** See `/docs/business-rules.md` for complete business logic documentation
+## Usage in Code
+
+**When to load this skill:**
+- Working with core business entities
+- Implementing business logic and validations
+- Processing payments or financial operations
+- Enforcing business constraints
+- Making architectural decisions about domain logic
+
+**Example usage:**
+```
+User asks: "Add order validation logic"
+Claude loads: /business-logic skill
+Result: Claude knows your specific order rules
+```
+
+---
+
+## Related Documentation
+
+- `docs/business-rules.md` - Detailed business rules documentation
+- `docs/development-patterns.md` - Implementation patterns
+- `.claude/skills/laravel-livewire/SKILL.md` - Technical patterns
+
+---
+
+**Last Updated:** [DATE]
+**Project:** [YOUR PROJECT NAME]
+**Domain:** [YOUR BUSINESS DOMAIN]

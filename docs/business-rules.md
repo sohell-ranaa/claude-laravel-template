@@ -1,319 +1,77 @@
 # Business Rules & Logic
 
-**Two-sided marketplace for parcel sorting centers**
+**[YOUR PROJECT NAME] - Define your business domain here**
 
 ---
 
-## <× Core Business Model
+## ðŸ“ Instructions
 
-### The Two-Sided Marketplace
+This file should contain your project-specific business rules and domain logic.
 
-This system operates as a **two-sided marketplace** connecting:
-
-1. **Parcel IN Partners (SenderClient)**
-   - E-commerce platforms
-   - Kiosk networks
-   - Retailers
-   - Marketplaces
-   - **Send parcels TO sorting centers**
-
-2. **Parcel OUT Partners (DeliveryPartner)**
-   - Courier services
-   - Kiosk networks
-   - Last-mile delivery providers
-   - Freight forwarders
-   - **Receive sorted parcels FROM sorting centers**
-
-**Note:** DigiBox Kiosk Network acts as BOTH IN and OUT partner.
+Replace the example content below with your actual business rules.
 
 ---
 
-## > Partner Relationship Types
+## Example: E-Commerce Platform
 
-### 1. External Partners
-**Definition:** Third-party companies with formal contracts
+### Core Business Model
 
-**Characteristics:**
-- Invoices are generated monthly
-- Actual money transfers occur
-- Payment terms apply (prepaid, postpaid, COD)
-- Commission/fees are charged
-- Tax calculations apply
+**Product Management:**
+- Products have SKUs, prices, inventory levels
+- Products can be in multiple categories
+- Products can have variants (size, color, etc.)
 
-**Example:**
-- External e-commerce platform sending parcels
-- External courier company delivering parcels
+**Order Processing:**
+- Orders go through: pending â†’ confirmed â†’ shipped â†’ delivered
+- Payment must be confirmed before shipping
+- Orders can be cancelled before shipping
 
-**Code Check:**
-```php
-if ($partner->partner_relationship_type === 'external') {
-    // Generate invoice
-    // Process payment
-    // Charge commission
-}
-```
+**Inventory Rules:**
+- Inventory is decremented on order confirmation
+- Out-of-stock products cannot be ordered
+- Low stock alerts at threshold
 
----
+### Critical Business Rules
 
-### 2. Internal Partners   CRITICAL
-**Definition:** Own divisions/departments (e.g., DigiBox Kiosk Network)
+1. **Payment Before Shipment**
+   - No order ships without payment confirmation
+   - Exception: COD orders (cash on delivery)
 
-**Characteristics:**
-- L **NO invoices generated**
-- L **NO money transfers**
-- L **NO commission charged**
--  Transactions tracked for reporting only
--  All entries are "book entries"
--  Used for internal analytics
+2. **Inventory Management**
+   ```php
+   if ($product->stock < $orderQuantity) {
+       throw new InsufficientStockException();
+   }
+   ```
 
-**Example:**
-- DigiBox Kiosk Network (own kiosk locations)
-- Internal warehouse division
-
-**CRITICAL CODE PATTERN:**
-```php
-// Always check before generating invoice/payment
-if ($partner->partner_relationship_type === 'internal') {
-    // DO: Record transaction for reporting
-    // DON'T: Generate invoice
-    // DON'T: Create payment record
-    // DON'T: Charge commission
-
-    // Book entry only
-    $this->recordInternalTransaction($partner, $amount);
-    return; // Skip invoicing logic
-}
-
-// For external partners only
-$this->generateInvoice($partner, $amount);
-$this->processPayment($partner);
-```
-
-**Alert Display:**
-```blade
-@if($partner->partner_relationship_type === 'internal')
-    <x-alert variant="info">
-        <strong>Internal Partner:</strong> Transactions tracked for reporting only.
-        No invoices or payments are generated.
-    </x-alert>
-@endif
-```
+3. **Refund Policy**
+   - Full refund within 7 days
+   - Partial refund for damaged items
+   - No refund after 30 days
 
 ---
 
-### 3. Subsidiary Partners
-**Definition:** Partially owned entities
+## Your Project
 
-**Characteristics:**
-- Invoices generated but with special terms
-- Preferential rates
-- Consolidated billing
-- Simplified payment flows
+**Replace this section with your business model:**
 
----
+### Entity 1: [Name]
+- Description
+- Business rules
+- Relationships
 
-## =° Payment & Settlement Logic
+### Entity 2: [Name]
+- Description
+- Business rules
+- Relationships
 
-### Payment Terms
-
-#### 1. Prepaid
-- Client pays BEFORE service
-- Balance deducted from credit
-- No invoices generated
-
-#### 2. Postpaid
-- Client pays AFTER service (monthly)
-- Invoices generated at month-end
-- Payment due based on terms (7 days, 15 days, etc.)
-
-#### 3. COD (Cash on Delivery)
-- Delivery partner collects cash from end customer
-- Delivery partner remits to sorting center
-- Sorting center settles with sender client
-
-#### 4. Credit
-- Client has credit limit
-- Balance tracked
-- Auto-invoice when credit used
+### Critical Rules for Your Domain
+1. Rule 1
+2. Rule 2
+3. Rule 3
 
 ---
 
-### Payment Collection Methods
-
-#### 1. Direct Billing
-- Monthly invoice sent
-- Bank transfer expected
-- Reconciliation required
-
-#### 2. Bank Transfer
-- Direct transfer to account
-- Reference number required
-- Auto-reconciliation
-
-#### 3. Cash
-- Physical cash payment
-- Receipt generated
-- Manual reconciliation
-
-#### 4. Mobile Wallet
-- Digital payment (bKash, Nagad, etc.)
-- Instant confirmation
-- Auto-reconciliation
-
----
-
-## =Ê Partner Type Specifics
-
-### Sender Client (IN Partners)
-
-**Business Types:**
-- `ecommerce`: E-commerce platforms
-- `kiosk`: Kiosk networks (send from kiosks TO center)
-- `retail`: Retail stores
-- `marketplace`: Marketplace platforms
-
-**Key Fields:**
-- `expected_volume_per_day`: Capacity planning
-- `total_parcels_sent`: Running total
-- `billing_enabled`: Can be invoiced?
-- `cod_settlement_enabled`: Handles COD?
-- `api_key`: For API integration
-- `webhook_url`: For status callbacks
-
-**Flow:**
-1. Sender client submits parcel pre-data
-2. Sorting center receives parcels
-3. Parcels are sorted and dispatched
-4. Invoice/settlement happens based on terms
-
----
-
-### Delivery Partner (OUT Partners)
-
-**Partner Types:**
-- `courier_service`: Traditional courier
-- `kiosk_network`: Kiosk-based delivery (receive AT kiosks)
-- `last_mile_provider`: Last-mile specialists
-- `freight_forwarder`: Long-distance carriers
-
-**Key Fields:**
-- `delivery_capacity_per_day`: Max parcels per day
-- `total_parcels_received`: Running total
-- `delivery_success_rate`: Performance metric
-- `average_delivery_time_hours`: Speed metric
-- `commission_rate`: % per successful delivery
-- `cod_collection_enabled`: Can collect COD?
-- `sla_delivery_time_hours`: Service level agreement
-- `sla_success_rate_percentage`: Minimum success rate
-
-**Flow:**
-1. Sorting center assigns sorted parcels
-2. Delivery partner picks up parcels
-3. Delivery partner delivers to end customer
-4. COD collected (if applicable)
-5. Commission/payment settled
-
----
-
-## = DigiBox Kiosk Network Scenario
-
-**Special Case:** Acts as BOTH sender and delivery partner
-
-### As Sender Client:
-- Customers drop parcels at kiosks
-- Kiosks send pre-data to sorting center
-- Parcels collected and brought to center
-- Sorted and dispatched to delivery partners
-
-### As Delivery Partner:
-- Sorted parcels assigned to kiosk locations
-- Parcels delivered to destination kiosks
-- Customers pick up from kiosks
-- COD collected at kiosks
-
-### Database Records:
-```php
-// Two separate records in database
-SenderClient: {
-    code: 'DIGI-SND-001',
-    name: 'DigiBox Kiosk Network',
-    partner_relationship_type: 'internal', //  
-    business_type: 'kiosk'
-}
-
-DeliveryPartner: {
-    code: 'DIGI-DEL-001',
-    name: 'DigiBox Kiosk Network',
-    partner_relationship_type: 'internal', //  
-    partner_type: 'kiosk_network'
-}
-```
-
-**CRITICAL:** Both marked as `internal` ’ NO invoices, NO payments
-
----
-
-## =Ë Status Workflows
-
-### Partner Status Lifecycle
-
-```
-pending_approval ’ active ” inactive
-                    “
-                suspended
-                    “
-                archived (soft delete)
-```
-
-**Status Meanings:**
-- `pending_approval`: Awaiting verification
-- `active`: Operational
-- `inactive`: Temporarily disabled (can reactivate)
-- `suspended`: Frozen due to issues (requires review)
-- `archived`: No longer in use (soft delete)
-
----
-
-## = API Integration
-
-### For External Partners Only
-
-**API Key Generation:**
-```php
-// Auto-generated on creation
-$apiKey = 'sndr_' . Str::random(50); // Sender clients
-$apiKey = 'dlvr_' . Str::random(50); // Delivery partners
-```
-
-**Rate Limiting:**
-- `rate_limit_per_day`: Max API calls per day
-- Default: 10,000 requests/day
-
-**Webhooks:**
-- `webhook_url`: Partner's callback URL
-- Receives parcel status updates
-- Retry logic: 3 attempts with exponential backoff
-
----
-
-## =¡ Business Rules Summary
-
-### DO:
--  Track ALL transactions (internal and external)
--  Generate invoices for external partners only
--  Check `partner_relationship_type` before invoicing
--  Use consistent status workflows
--  Calculate commission for external delivery partners
--  Validate API keys for external partners
-
-### DON'T:
-- L Generate invoices for internal partners
-- L Create payment records for internal partners
-- L Charge commission to internal partners
-- L Mix internal and external payment logic
-- L Skip tracking internal transactions (still need reporting)
-
----
-
-**Last Updated:** March 5, 2026
-**Critical:** Always check partner_relationship_type before financial operations
+**See Also:**
+- `.claude/skills/business-logic/SKILL.md` - Business logic skill
+- `docs/development-patterns.md` - Implementation patterns
